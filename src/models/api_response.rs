@@ -1,7 +1,6 @@
 use serde::Serialize;
 use utoipa::ToSchema;
 
-// 1. Import the concrete types we want to use with ApiResponse
 use crate::models::{
     hospital_response::HospitalsResponse,
     single_hospital_response::SingleHospitalResponse,
@@ -13,12 +12,9 @@ pub struct Meta {
     pub message: Option<String>,
 }
 
-// 2. Define Aliases here so Swagger knows how to swap "T" for real types
 #[derive(Debug, Serialize, ToSchema)]
 #[aliases(
-    // When code uses ApiResponse<HospitalsResponse>, Swagger generates "HospitalListResponse"
     HospitalListResponse = ApiResponse<HospitalsResponse>,
-    // When code uses ApiResponse<SingleHospitalResponse>, Swagger generates "HospitalSingleResponse"
     HospitalSingleResponse = ApiResponse<SingleHospitalResponse>
 )]
 pub struct ApiResponse<T> {

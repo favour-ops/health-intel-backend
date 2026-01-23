@@ -9,8 +9,8 @@ use crate::{
     db::hospital_repo::{create_hospital, fetch_all_hospitals, fetch_hospital_by_id},
     errors::app::AppError,
     models::{
-        ApiResponse,
-        hospital::{CreateHospitalRequest, Hospital}, // Import Hospital for docs
+        api_response::ApiResponse,
+        hospital::CreateHospitalRequest,
         hospital_response::HospitalsResponse,
         single_hospital_response::SingleHospitalResponse,
     },
@@ -23,7 +23,8 @@ use crate::{
     path = "/api/v1/hospitals",
     tag = "Hospitals",
     responses(
-        (status = 200, description = "List of all hospitals", body = ApiResponse<HospitalsResponse>)
+        // FIX: Wrap the body in inline(...) to avoid reference errors
+        (status = 200, description = "List of all hospitals", body = inline(ApiResponse<HospitalsResponse>))
     )
 )]
 pub async fn get_hospitals(
@@ -46,7 +47,8 @@ pub async fn get_hospitals(
         ("id" = Uuid, Path, description = "Hospital UUID")
     ),
     responses(
-        (status = 200, description = "Hospital details", body = ApiResponse<SingleHospitalResponse>),
+        // FIX: Wrap in inline(...)
+        (status = 200, description = "Hospital details", body = inline(ApiResponse<SingleHospitalResponse>)),
         (status = 404, description = "Hospital not found")
     )
 )]
@@ -70,7 +72,8 @@ pub async fn get_hospital_by_id(
     tag = "Hospitals",
     request_body = CreateHospitalRequest,
     responses(
-        (status = 200, description = "Hospital created successfully", body = ApiResponse<SingleHospitalResponse>),
+        // FIX: Wrap in inline(...)
+        (status = 200, description = "Hospital created successfully", body = inline(ApiResponse<SingleHospitalResponse>)),
         (status = 400, description = "Invalid input data"),
         (status = 409, description = "Hospital with this name already exists")
     )

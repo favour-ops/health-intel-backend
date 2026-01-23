@@ -3,9 +3,9 @@ use crate::models::{
     hospital::{CreateHospitalRequest, Hospital},
     hospital_response::HospitalsResponse,
     single_hospital_response::SingleHospitalResponse,
-    api_response::{ApiResponse, Meta},
+    api_response::{ApiResponse, Meta}, // Only import ApiResponse and Meta
 };
-use crate::routes::hospitals; // Import the module
+use crate::routes::hospitals;
 
 #[derive(OpenApi)]
 #[openapi(
@@ -21,6 +21,8 @@ use crate::routes::hospitals; // Import the module
             HospitalsResponse,
             SingleHospitalResponse,
             Meta,
+            // Register the generics. 
+            // Utoipa sees the #[aliases] in api_response.rs and generates the correct names automatically.
             ApiResponse<HospitalsResponse>,
             ApiResponse<SingleHospitalResponse>,
         )
