@@ -1,15 +1,26 @@
 use serde::Serialize;
-use utoipa::ToSchema; // Import ToSchema
+use utoipa::ToSchema;
 
-#[derive(Debug, Serialize, ToSchema)] // Add ToSchema
+// 1. Import the concrete types we want to use with ApiResponse
+use crate::models::{
+    hospital_response::HospitalsResponse,
+    single_hospital_response::SingleHospitalResponse,
+};
+
+#[derive(Debug, Serialize, ToSchema)]
 pub struct Meta {
     pub count: Option<u32>,
     pub message: Option<String>,
 }
 
-// Note: For generics like this, we will define specific aliases 
-// (e.g., "HospitalSuccessResponse") in the main documentation file later.
-#[derive(Debug, Serialize, ToSchema)] // Add ToSchema
+// 2. Define Aliases here so Swagger knows how to swap "T" for real types
+#[derive(Debug, Serialize, ToSchema)]
+#[aliases(
+    // When code uses ApiResponse<HospitalsResponse>, Swagger generates "HospitalListResponse"
+    HospitalListResponse = ApiResponse<HospitalsResponse>,
+    // When code uses ApiResponse<SingleHospitalResponse>, Swagger generates "HospitalSingleResponse"
+    HospitalSingleResponse = ApiResponse<SingleHospitalResponse>
+)]
 pub struct ApiResponse<T> {
     pub status: String,
     pub data: Option<T>,
