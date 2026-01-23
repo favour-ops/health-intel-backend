@@ -16,13 +16,14 @@ async fn main() {
 
     let app_state = AppState { db: db_pool };
 
-    let app = create_router(app_state);
+    // ✅ router is Router<AppState>
+    let app = create_router().with_state(app_state);
 
     let listener = TcpListener::bind("127.0.0.1:3000")
         .await
         .expect("Failed to bind address");
 
-    println!("🚀 Server running on http://127.0.0.1:3000");
+    tracing::info!("Server running on http://127.0.0.1:3000");
 
     axum::serve(listener, app)
         .await

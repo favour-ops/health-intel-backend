@@ -16,3 +16,22 @@ pub async fn fetch_all_hospitals(
 
     Ok(hospitals)
 }
+
+pub async fn fetch_hospital_by_id(
+    pool: &PgPool,
+    hospital_id: uuid::Uuid,
+) -> Result<Option<Hospital>, sqlx::Error> {
+    let hospital = sqlx::query_as::<_, Hospital>(
+        r#"
+        SELECT id, name, hospital_type, state, city, is_active, created_at
+        FROM hospitals
+        WHERE id = $1
+        "#
+    )
+    .bind(hospital_id)
+    .fetch_optional(pool)
+    .await?;
+
+    Ok(hospital)
+}
+
