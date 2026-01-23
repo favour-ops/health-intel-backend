@@ -1,0 +1,1 @@
+ALTER TABLE hospitals ADD CONSTRAINT hospitals_name_key UNIQUE (name);

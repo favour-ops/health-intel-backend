@@ -1,7 +1,8 @@
 use serde::Serialize;
 use crate::models::hospital::Hospital;
+use utoipa::ToSchema; // Import ToSchema
 
-#[derive(Serialize)]
+#[derive(Debug, Serialize, ToSchema)] // Add ToSchema
 pub struct HospitalsResponse {
     pub hospitals: Vec<Hospital>,
 }

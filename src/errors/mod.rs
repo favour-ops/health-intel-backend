@@ -1,3 +1,3 @@
 pub mod app;
-pub mod http;
 pub mod db;
+// pub mod http;  <-- Remove or comment out this line

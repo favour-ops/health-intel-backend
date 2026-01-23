@@ -1,12 +1,15 @@
 use serde::Serialize;
+use utoipa::ToSchema; // Import ToSchema
 
-#[derive(Serialize)]
+#[derive(Debug, Serialize, ToSchema)] // Add ToSchema
 pub struct Meta {
-    pub count: Option<usize>,
+    pub count: Option<u32>,
     pub message: Option<String>,
 }
 
-#[derive(Serialize)]
+// Note: For generics like this, we will define specific aliases 
+// (e.g., "HospitalSuccessResponse") in the main documentation file later.
+#[derive(Debug, Serialize, ToSchema)] // Add ToSchema
 pub struct ApiResponse<T> {
     pub status: String,
     pub data: Option<T>,
@@ -14,13 +17,13 @@ pub struct ApiResponse<T> {
 }
 
 impl<T> ApiResponse<T> {
-    pub fn success(data: T, count: Option<usize>) -> Self {
+    pub fn success(data: T, message: Option<String>) -> Self {
         Self {
             status: "success".to_string(),
             data: Some(data),
             meta: Meta {
-                count,
-                message: None,
+                count: None,
+                message,
             },
         }
     }

@@ -3,25 +3,33 @@ use axum::{
     Json,
 };
 use uuid::Uuid;
+use validator::Validate;
 
 use crate::{
-    db::hospital_repo::{fetch_all_hospitals, fetch_hospital_by_id},
+    db::hospital_repo::{create_hospital, fetch_all_hospitals, fetch_hospital_by_id},
     errors::app::AppError,
     models::{
         ApiResponse,
+        hospital::{CreateHospitalRequest, Hospital}, // Import Hospital for docs
         hospital_response::HospitalsResponse,
         single_hospital_response::SingleHospitalResponse,
     },
     routes::state::AppState,
 };
 
-/// GET /api/v1/hospitals
+/// List all hospitals
+#[utoipa::path(
+    get,
+    path = "/api/v1/hospitals",
+    tag = "Hospitals",
+    responses(
+        (status = 200, description = "List of all hospitals", body = ApiResponse<HospitalsResponse>)
+    )
+)]
 pub async fn get_hospitals(
     State(state): State<AppState>,
 ) -> Result<Json<ApiResponse<HospitalsResponse>>, AppError> {
-    let hospitals = fetch_all_hospitals(&state.db)
-    .await?; // ✅ no panic
-    .map_err(|_| AppError::Database)?;
+    let hospitals = fetch_all_hospitals(&state.db).await?;
     
     Ok(Json(ApiResponse::success(
         HospitalsResponse { hospitals },
@@ -29,14 +37,53 @@ pub async fn get_hospitals(
     )))
 }
 
-/// GET /api/v1/hospitals/:id
+/// Get a single hospital by ID
+#[utoipa::path(
+    get,
+    path = "/api/v1/hospitals/{id}",
+    tag = "Hospitals",
+    params(
+        ("id" = Uuid, Path, description = "Hospital UUID")
+    ),
+    responses(
+        (status = 200, description = "Hospital details", body = ApiResponse<SingleHospitalResponse>),
+        (status = 404, description = "Hospital not found")
+    )
+)]
 pub async fn get_hospital_by_id(
     Path(id): Path<Uuid>,
     State(state): State<AppState>,
 ) -> Result<Json<ApiResponse<SingleHospitalResponse>>, AppError> {
-    let hospital = fetch_hospital_by_id(&state.db, id).await?; // ✅ propagate DB error
+    let hospital = fetch_hospital_by_id(&state.db, id).await?; 
+    let hospital = hospital.ok_or(AppError::NotFound)?; 
 
-    let hospital = hospital.ok_or(AppError::NotFound)?; // ✅ business error
+    Ok(Json(ApiResponse::success(
+        SingleHospitalResponse { hospital },
+        None,
+    )))
+}
+
+/// Create a new hospital
+#[utoipa::path(
+    post,
+    path = "/api/v1/hospitals",
+    tag = "Hospitals",
+    request_body = CreateHospitalRequest,
+    responses(
+        (status = 200, description = "Hospital created successfully", body = ApiResponse<SingleHospitalResponse>),
+        (status = 400, description = "Invalid input data"),
+        (status = 409, description = "Hospital with this name already exists")
+    )
+)]
+pub async fn create_hospital_handler(
+    State(state): State<AppState>,
+    Json(payload): Json<CreateHospitalRequest>,
+) -> Result<Json<ApiResponse<SingleHospitalResponse>>, AppError> {
+    if let Err(validation_errors) = payload.validate() {
+        return Err(AppError::BadRequest(validation_errors.to_string()));
+    }
+
+    let hospital = create_hospital(&state.db, payload).await?;
 
     Ok(Json(ApiResponse::success(
         SingleHospitalResponse { hospital },

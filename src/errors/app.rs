@@ -4,13 +4,15 @@ use axum::{
     Json,
 };
 use tracing::error;
-
 use crate::models::ApiResponse;
 
 #[derive(Debug)]
 pub enum AppError {
     NotFound,
-    Database,
+    // Database now holds a String message to explain what went wrong
+    Database(String),
+    // New Conflict variant
+    Conflict(String),
     BadRequest(String),
     Unauthorized,
     Forbidden,
@@ -25,10 +27,15 @@ impl IntoResponse for AppError {
                 "Resource not found",
                 "NOT_FOUND",
             ),
-            AppError::Database => (
+            AppError::Database(msg) => (
                 StatusCode::INTERNAL_SERVER_ERROR,
-                "Database error",
+                msg.as_str(),
                 "DATABASE_ERROR",
+            ),
+            AppError::Conflict(msg) => (
+                StatusCode::CONFLICT,
+                msg.as_str(),
+                "CONFLICT",
             ),
             AppError::BadRequest(msg) => (
                 StatusCode::BAD_REQUEST,
@@ -52,7 +59,6 @@ impl IntoResponse for AppError {
             ),
         };
 
-        // 🔥 STRUCTURED LOGGING — ONE PLACE ONLY
         error!(
             error_code = error_code,
             http_status = status.as_u16(),
