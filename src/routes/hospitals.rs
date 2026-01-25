@@ -9,7 +9,7 @@ use crate::{
     db::hospital_repo::{create_hospital, fetch_all_hospitals, fetch_hospital_by_id},
     errors::app::AppError,
     models::{
-        api_response::ApiResponse,
+        api_response::{ApiResponse, HospitalListResponse, HospitalSingleResponse},
         hospital::CreateHospitalRequest,
         hospital_response::HospitalsResponse,
         single_hospital_response::SingleHospitalResponse,
@@ -23,13 +23,12 @@ use crate::{
     path = "/api/v1/hospitals",
     tag = "Hospitals",
     responses(
-        // FIX: Wrap the body in inline(...) to avoid reference errors
-        (status = 200, description = "List of all hospitals", body = inline(ApiResponse<HospitalsResponse>))
+        (status = 200, description = "List of all hospitals", body = HospitalListResponse)
     )
 )]
 pub async fn get_hospitals(
     State(state): State<AppState>,
-) -> Result<Json<ApiResponse<HospitalsResponse>>, AppError> {
+) -> Result<Json<HospitalListResponse>, AppError> {
     let hospitals = fetch_all_hospitals(&state.db).await?;
     
     Ok(Json(ApiResponse::success(
@@ -47,15 +46,14 @@ pub async fn get_hospitals(
         ("id" = Uuid, Path, description = "Hospital UUID")
     ),
     responses(
-        // FIX: Wrap in inline(...)
-        (status = 200, description = "Hospital details", body = inline(ApiResponse<SingleHospitalResponse>)),
+        (status = 200, description = "Hospital details", body = HospitalSingleResponse),
         (status = 404, description = "Hospital not found")
     )
 )]
 pub async fn get_hospital_by_id(
     Path(id): Path<Uuid>,
     State(state): State<AppState>,
-) -> Result<Json<ApiResponse<SingleHospitalResponse>>, AppError> {
+) -> Result<Json<HospitalSingleResponse>, AppError> {
     let hospital = fetch_hospital_by_id(&state.db, id).await?; 
     let hospital = hospital.ok_or(AppError::NotFound)?; 
 
@@ -72,8 +70,7 @@ pub async fn get_hospital_by_id(
     tag = "Hospitals",
     request_body = CreateHospitalRequest,
     responses(
-        // FIX: Wrap in inline(...)
-        (status = 200, description = "Hospital created successfully", body = inline(ApiResponse<SingleHospitalResponse>)),
+        (status = 200, description = "Hospital created successfully", body = HospitalSingleResponse),
         (status = 400, description = "Invalid input data"),
         (status = 409, description = "Hospital with this name already exists")
     )
@@ -81,7 +78,7 @@ pub async fn get_hospital_by_id(
 pub async fn create_hospital_handler(
     State(state): State<AppState>,
     Json(payload): Json<CreateHospitalRequest>,
-) -> Result<Json<ApiResponse<SingleHospitalResponse>>, AppError> {
+) -> Result<Json<HospitalSingleResponse>, AppError> {
     if let Err(validation_errors) = payload.validate() {
         return Err(AppError::BadRequest(validation_errors.to_string()));
     }

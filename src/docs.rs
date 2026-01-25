@@ -3,7 +3,7 @@ use crate::models::{
     hospital::{CreateHospitalRequest, Hospital},
     hospital_response::HospitalsResponse,
     single_hospital_response::SingleHospitalResponse,
-    api_response::{ApiResponse, Meta}, // Only import ApiResponse and Meta
+    api_response::{Meta, HospitalListResponse, HospitalSingleResponse},
 };
 use crate::routes::hospitals;
 
@@ -21,10 +21,9 @@ use crate::routes::hospitals;
             HospitalsResponse,
             SingleHospitalResponse,
             Meta,
-            // Register the generics. 
-            // Utoipa sees the #[aliases] in api_response.rs and generates the correct names automatically.
-            ApiResponse<HospitalsResponse>,
-            ApiResponse<SingleHospitalResponse>,
+            // Register the response types with their proper aliases
+            HospitalListResponse,
+            HospitalSingleResponse,
         )
     ),
     tags(

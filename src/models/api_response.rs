@@ -13,15 +13,15 @@ pub struct Meta {
 }
 
 #[derive(Debug, Serialize, ToSchema)]
-#[aliases(
-    HospitalListResponse = ApiResponse<HospitalsResponse>,
-    HospitalSingleResponse = ApiResponse<SingleHospitalResponse>
-)]
 pub struct ApiResponse<T> {
     pub status: String,
     pub data: Option<T>,
     pub meta: Meta,
 }
+
+// Type aliases for concrete API responses
+pub type HospitalListResponse = ApiResponse<HospitalsResponse>;
+pub type HospitalSingleResponse = ApiResponse<SingleHospitalResponse>;
 
 impl<T> ApiResponse<T> {
     pub fn success(data: T, message: Option<String>) -> Self {
