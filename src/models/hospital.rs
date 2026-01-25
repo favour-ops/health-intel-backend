@@ -14,6 +14,8 @@ pub struct Hospital {
     pub city: String,
     pub is_active: bool,
     pub created_at: DateTime<Utc>,
+    pub latitude: Option<f64>,
+    pub longitude: Option<f64>,
 }
 
 #[derive(Debug, Deserialize, Validate, ToSchema)] // Add ToSchema
@@ -29,4 +31,7 @@ pub struct CreateHospitalRequest {
 
     #[validate(length(min = 1, message = "City is required"))]
     pub city: String,
+
+    pub latitude: Option<f64>,
+    pub longitude: Option<f64>,
 }
