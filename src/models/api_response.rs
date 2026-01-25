@@ -19,9 +19,13 @@ pub struct ApiResponse<T> {
     pub meta: Meta,
 }
 
-// Type aliases for concrete API responses
-pub type HospitalListResponse = ApiResponse<HospitalsResponse>;
-pub type HospitalSingleResponse = ApiResponse<SingleHospitalResponse>;
+// Newtype wrappers for concrete API responses
+// These implement ToSchema so Utoipa can generate schema definitions
+#[derive(Debug, Serialize, ToSchema)]
+pub struct HospitalListResponse(pub ApiResponse<HospitalsResponse>);
+
+#[derive(Debug, Serialize, ToSchema)]
+pub struct HospitalSingleResponse(pub ApiResponse<SingleHospitalResponse>);
 
 impl<T> ApiResponse<T> {
     pub fn success(data: T, message: Option<String>) -> Self {

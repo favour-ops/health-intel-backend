@@ -31,10 +31,10 @@ pub async fn get_hospitals(
 ) -> Result<Json<HospitalListResponse>, AppError> {
     let hospitals = fetch_all_hospitals(&state.db).await?;
     
-    Ok(Json(ApiResponse::success(
+    Ok(Json(HospitalListResponse(ApiResponse::success(
         HospitalsResponse { hospitals },
         None,
-    )))
+    ))))
 }
 
 /// Get a single hospital by ID
@@ -57,10 +57,10 @@ pub async fn get_hospital_by_id(
     let hospital = fetch_hospital_by_id(&state.db, id).await?; 
     let hospital = hospital.ok_or(AppError::NotFound)?; 
 
-    Ok(Json(ApiResponse::success(
+    Ok(Json(HospitalSingleResponse(ApiResponse::success(
         SingleHospitalResponse { hospital },
         None,
-    )))
+    ))))
 }
 
 /// Create a new hospital
@@ -85,8 +85,8 @@ pub async fn create_hospital_handler(
 
     let hospital = create_hospital(&state.db, payload).await?;
 
-    Ok(Json(ApiResponse::success(
+    Ok(Json(HospitalSingleResponse(ApiResponse::success(
         SingleHospitalResponse { hospital },
         None,
-    )))
+    ))))
 }
