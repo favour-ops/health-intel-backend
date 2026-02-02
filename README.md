@@ -29,22 +29,19 @@ To access the dashboard and test protected endpoints, use the following credenti
 ### Primary Goals (Current Phase)
 
 ✅ **Completed:**
-- Centralize hospital data with a robust API
-- Provide consistent, standardized API response structure
-- Implement comprehensive error handling and structured logging
-- **Secure Authentication System (JWT + Bcrypt)**
-- **Real-time Occupancy Tracking**
-- **Interactive Dashboard with Map**
+- **Centralize Hospital Data:** Robust API for facility management
+- **Secure Authentication:** JWT + Bcrypt for secure access
+- **Clinical Workflow:** Full tracking of Doctors, Patients, and Visits
+- **Resource Management:** Departments and Medical Equipment tracking
+- **Real-time Occupancy:** Capacity tracking (foundation laid)
+- **Interactive Dashboard:** Backend support for map visualizations
 
 ### Long-Term Goals
 
-- Multi-hospital support with resource scoping
-- Role-based access control (Admin, Doctor, Nurse, Staff)
+- Role-based access control (RBAC) middleware
 - Audit logs and complete traceability
 - AI-powered health insights and analytics
 - Integration with external hospital systems
-- Patient records and appointment management
-- Staff and resource management
 
 ---
 
@@ -145,15 +142,24 @@ Why This Matters
 ✅ Cleaner API documentation
 
 ✅ Simplified testing and debugging
+## 📦 API Endpoints Overview
 
-🔌 API Endpoints
-Base URL
-http://localhost:3000
-Interactive Docs
-Swagger UI: http://localhost:3000/swagger-ui
+### Base URL: `http://localhost:3000`
 
-OpenAPI Spec: http://localhost:3000/api-docs/openapi.json
+### 🏥 Core Resources
+- `GET /api/v1/health` - System health check
+- `POST /api/v1/login` - Admin authentication
 
+### 🏢 Facility Management
+- `GET /api/v1/hospitals` - List all hospitals
+- `POST /api/v1/hospitals` - Register new hospital
+- `POST /api/v1/departments` - Add department (e.g., Cardiology, ER)
+- `POST /api/v1/equipment` - Register medical assets (MRI, X-Ray)
+
+### 👨‍⚕️ Clinical Operations
+- `POST /api/v1/staff` - Register Doctors/Nurses
+- `POST /api/v1/patients` - Register Patients
+- `POST /api/v1/visits` - Schedule Appointments/Visits
 Health Check
 GET /api/v1/health
 
@@ -834,6 +840,11 @@ cargo clippy -- -D warnings
 
 # Run tests
 cargo test
+We have a comprehensive integration test suite covering the full clinical flow.
+
+Bash
+
+cargo test --test clinical_flow
 
 # Check compilation
 cargo check
@@ -935,11 +946,11 @@ Data Models - Database design
 
 New to the project? Start with QUICK_START.md
 
-Last Updated: January 2025
+Last Updated: February 2026
 
 Version: 0.2.0 (Auth Enabled)
 
-Status: 🚀 Active Development
+Status: 🚀 MVP Complete
 
 Quick Commands Reference
 Bash
@@ -965,3 +976,14 @@ cargo tree                         # Check dependencies
 # Debugging
 RUST_LOG=debug cargo run           # Run with debug logging
 cargo expand                       # View macro expansions
+
+## 🧬 Data Models
+
+The system is built on a relational schema enforcing data integrity:
+
+1.  **Hospital:** The root entity.
+2.  **Department:** Belongs to a Hospital.
+3.  **Staff:** Linked to Hospital & Department.
+4.  **Patient:** Can be linked to a Hospital.
+5.  **Visit:** Connects a **Patient** to a **Doctor** at a **Hospital**.
+6.  **Equipment:** Asset linked to a Department.

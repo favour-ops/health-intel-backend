@@ -12,6 +12,11 @@ use super::{
     health::health_check,
     hospitals::{create_hospital_handler, get_hospitals, get_hospital_by_id, delete_hospital, update_hospital_handler},
     auth::login_handler,
+    departments::{create_department_handler, get_hospital_departments},
+    staff::{create_staff_handler, get_hospital_staff},
+    patients::{create_patient_handler, get_patients_handler},
+    visits::{create_visit_handler, get_hospital_visits},
+    equipment::{create_equipment_handler, get_hospital_equipment},
     state::AppState,
 };
 
@@ -32,6 +37,15 @@ pub fn create_router() -> Router<AppState> {
             .delete(delete_hospital)
             .put(update_hospital_handler)
         )
+        .route("/api/v1/departments", post(create_department_handler))
+        .route("/api/v1/hospitals/:id/departments", get(get_hospital_departments))
+        .route("/api/v1/staff", post(create_staff_handler))
+        .route("/api/v1/hospitals/:id/staff", get(get_hospital_staff))
+        .route("/api/v1/patients", get(get_patients_handler).post(create_patient_handler))
+        .route("/api/v1/visits", post(create_visit_handler))
+        .route("/api/v1/hospitals/:id/visits", get(get_hospital_visits))
+        .route("/api/v1/equipment", post(create_equipment_handler))
+        .route("/api/v1/hospitals/:id/equipment", get(get_hospital_equipment))
         .merge(SwaggerUi::new("/swagger-ui").url("/api-docs/openapi.json", ApiDoc::openapi()))
         .layer(cors)
 }

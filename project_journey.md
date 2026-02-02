@@ -256,7 +256,7 @@ Use cargo fmt for formatting
 
 Use cargo clippy for linting
 
-Last Updated: January 2025
+Last Updated: February 2026
 
 Version: 0.2.0 (Auth Enabled)
 

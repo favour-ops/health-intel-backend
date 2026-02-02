@@ -78,6 +78,20 @@ We updated the user record directly via SQL to guarantee the hash was correct.
 
 We successfully connected the Next.js login form to the Rust backend, storing the JWT in localStorage.
 
+## 9. The Dependency Chain Challenge (Clinical Flow)
+**The Challenge:**
+When building the "Missing Pieces" (Doctors, Patients, Visits, Equipment), we faced strict foreign key constraints. We could not create a Doctor without a Department, and we couldn't create a Department without a Hospital.
+
+**The Fix:**
+We adopted a strictly ordered implementation roadmap:
+1.  **Hospitals** (Root)
+2.  **Departments** (Dependent on Hospital)
+3.  **Staff** (Dependent on Dept)
+4.  **Patients** (Independent/Dependent)
+5.  **Visits** (The Intersection Entity)
+
+We then wrote a `clinical_flow.rs` integration test that mimics this exact sequence programmatically, proving that the entire database schema holds together correctly under load.
+
 9. Git Commands to Push
 Run these in your terminal (make sure you are in the root folder):
 

@@ -3,6 +3,11 @@ use crate::models::{
     hospital::{CreateHospitalRequest, Hospital},
     hospital_response::HospitalsResponse,
     single_hospital_response::SingleHospitalResponse,
+    department::{Department, CreateDepartmentRequest},
+    staff::{Staff, CreateStaffRequest},
+    patient::{Patient, CreatePatientRequest},
+    visit::{Visit, CreateVisitRequest},
+    equipment::{Equipment, CreateEquipmentRequest},
     api_response::{Meta, HospitalListResponse, HospitalSingleResponse},
 };
 use crate::routes::hospitals;
@@ -21,9 +26,18 @@ use crate::routes::hospitals;
             HospitalsResponse,
             SingleHospitalResponse,
             Meta,
-            // Register the response types with their proper aliases
+            Department,
+            CreateDepartmentRequest,       
             HospitalListResponse,
             HospitalSingleResponse,
+            Staff,
+            CreateStaffRequest,
+            Patient,
+            CreatePatientRequest,
+            Visit,
+            CreateVisitRequest,
+            Equipment,
+            CreateEquipmentRequest,
         )
     ),
     tags(
