@@ -16,6 +16,12 @@ pub struct Hospital {
     pub created_at: DateTime<Utc>,
     pub latitude: Option<f64>,
     pub longitude: Option<f64>,
+    pub total_beds: Option<i32>,
+    pub has_emergency: Option<bool>,
+    pub occupied_beds: i32,
+    pub has_oxygen: bool,
+    pub has_ventilators: bool,
+    pub has_ambulance: bool,
 }
 
 #[derive(Debug, Deserialize, Validate, ToSchema)] // Add ToSchema
@@ -34,4 +40,10 @@ pub struct CreateHospitalRequest {
 
     pub latitude: Option<f64>,
     pub longitude: Option<f64>,
+    pub total_beds: Option<i32>,
+    pub has_emergency: Option<bool>,
+    pub occupied_beds: Option<i32>,
+    pub has_oxygen: Option<bool>,
+    pub has_ventilators: Option<bool>,
+    pub has_ambulance: Option<bool>,
 }

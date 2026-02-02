@@ -275,3 +275,15 @@ If something is unclear in the docs, that's a bug in the docs — fix it!
 
 **Last Updated:** January 2025  
 **Status:** 🚀 Active Development
+
+
+
+The Correct Login Command
+Use this command to log in. It matches exactly what is in your .env file:
+
+Bash
+
+psql -h localhost -U health_admin -d health_intel_mvp
+When asked for the password: Type: strongpassword (and press Enter).
+
+Once you are in (you see health_intel_mvp=>)

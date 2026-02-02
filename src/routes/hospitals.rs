@@ -1,92 +1,172 @@
 use axum::{
     extract::{Path, State},
+    http::StatusCode,
     Json,
 };
 use uuid::Uuid;
-use validator::Validate;
 
-use crate::{
-    db::hospital_repo::{create_hospital, fetch_all_hospitals, fetch_hospital_by_id},
-    errors::app::AppError,
-    models::{
-        api_response::{ApiResponse, HospitalListResponse, HospitalSingleResponse},
-        hospital::CreateHospitalRequest,
-        hospital_response::HospitalsResponse,
-        single_hospital_response::SingleHospitalResponse,
-    },
-    routes::state::AppState,
-};
-
-/// List all hospitals
-#[utoipa::path(
-    get,
-    path = "/api/v1/hospitals",
-    tag = "Hospitals",
-    responses(
-        (status = 200, description = "List of all hospitals", body = HospitalListResponse)
-    )
-)]
-pub async fn get_hospitals(
-    State(state): State<AppState>,
-) -> Result<Json<HospitalListResponse>, AppError> {
-    let hospitals = fetch_all_hospitals(&state.db).await?;
-    
-    Ok(Json(HospitalListResponse(ApiResponse::success(
-        HospitalsResponse { hospitals },
-        None,
-    ))))
-}
-
-/// Get a single hospital by ID
-#[utoipa::path(
-    get,
-    path = "/api/v1/hospitals/{id}",
-    tag = "Hospitals",
-    params(
-        ("id" = Uuid, Path, description = "Hospital UUID")
-    ),
-    responses(
-        (status = 200, description = "Hospital details", body = HospitalSingleResponse),
-        (status = 404, description = "Hospital not found")
-    )
-)]
-pub async fn get_hospital_by_id(
-    Path(id): Path<Uuid>,
-    State(state): State<AppState>,
-) -> Result<Json<HospitalSingleResponse>, AppError> {
-    let hospital = fetch_hospital_by_id(&state.db, id).await?; 
-    let hospital = hospital.ok_or(AppError::NotFound)?; 
-
-    Ok(Json(HospitalSingleResponse(ApiResponse::success(
-        SingleHospitalResponse { hospital },
-        None,
-    ))))
-}
+use crate::db::hospital_repo;
+use crate::models::{api_response::ApiResponse, hospital::CreateHospitalRequest};
+use crate::routes::state::AppState;
 
 /// Create a new hospital
 #[utoipa::path(
     post,
     path = "/api/v1/hospitals",
-    tag = "Hospitals",
+    tag = "hospitals",
     request_body = CreateHospitalRequest,
     responses(
-        (status = 200, description = "Hospital created successfully", body = HospitalSingleResponse),
-        (status = 400, description = "Invalid input data"),
-        (status = 409, description = "Hospital with this name already exists")
+        (status = 201, description = "Hospital created successfully", body = inline(ApiResponse<crate::models::Hospital>))
     )
 )]
 pub async fn create_hospital_handler(
-    State(state): State<AppState>,
+    State(state): State<AppState>, // <--- 2. Accept AppState, not PgPool
     Json(payload): Json<CreateHospitalRequest>,
-) -> Result<Json<HospitalSingleResponse>, AppError> {
-    if let Err(validation_errors) = payload.validate() {
-        return Err(AppError::BadRequest(validation_errors.to_string()));
+) -> Result<Json<ApiResponse<crate::models::Hospital>>, (StatusCode, Json<ApiResponse<()>>)> {
+    // 3. Access the DB pool via state.db
+    let hospital = hospital_repo::create_hospital(&state.db, payload)
+        .await
+        .map_err(|e| {
+            (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                Json(ApiResponse::error(&e.to_string())),
+            )
+        })?;
+
+    Ok(Json(ApiResponse::success(hospital, Some("Hospital created successfully".to_string()))))
+}
+
+/// Get all hospitals
+#[utoipa::path(
+    get,
+    path = "/api/v1/hospitals",
+    tag = "hospitals",
+    responses(
+        (status = 200, description = "List of all hospitals", body = inline(ApiResponse<Vec<crate::models::Hospital>>))
+    )
+)]
+pub async fn get_hospitals(
+    State(state): State<AppState>, // <--- Change here
+) -> Result<Json<ApiResponse<Vec<crate::models::Hospital>>>, (StatusCode, Json<ApiResponse<()>>)> {
+    let hospitals = hospital_repo::fetch_all_hospitals(&state.db) // <--- Change here
+        .await
+        .map_err(|e| {
+            (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                Json(ApiResponse::error(&e.to_string())),
+            )
+        })?;
+
+    Ok(Json(ApiResponse::success(hospitals, None)))
+}
+
+/// Get hospital by ID
+#[utoipa::path(
+    get,
+    path = "/api/v1/hospitals/{id}",
+    tag = "hospitals",
+    params(
+        ("id" = Uuid, Path, description = "Hospital ID")
+    ),
+    responses(
+        (status = 200, description = "Hospital details", body = inline(ApiResponse<crate::models::Hospital>)),
+        (status = 404, description = "Hospital not found")
+    )
+)]
+pub async fn get_hospital_by_id(
+    State(state): State<AppState>, // <--- Change here
+    Path(id): Path<Uuid>,
+) -> Result<Json<ApiResponse<crate::models::Hospital>>, (StatusCode, Json<ApiResponse<()>>)> {
+    let hospital = hospital_repo::fetch_hospital_by_id(&state.db, id) // <--- Change here
+        .await
+        .map_err(|e| {
+            (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                Json(ApiResponse::error(&e.to_string())),
+            )
+        })?;
+
+    match hospital {
+        Some(h) => Ok(Json(ApiResponse::success(h, None))),
+        None => Err((
+            StatusCode::NOT_FOUND,
+            Json(ApiResponse::error("Hospital not found")),
+        )),
+    }
+}
+
+/// Update a hospital
+#[utoipa::path(
+    put,
+    path = "/api/v1/hospitals/{id}",
+    tag = "hospitals",
+    params(
+        ("id" = Uuid, Path, description = "Hospital ID")
+    ),
+    request_body = CreateHospitalRequest,
+    responses(
+        (status = 200, description = "Hospital updated successfully", body = inline(ApiResponse<crate::models::Hospital>)),
+        (status = 404, description = "Hospital not found")
+    )
+)]
+pub async fn update_hospital_handler(
+    State(state): State<AppState>,
+    Path(id): Path<Uuid>,
+    Json(payload): Json<CreateHospitalRequest>,
+) -> Result<Json<ApiResponse<crate::models::Hospital>>, (StatusCode, Json<ApiResponse<()>>)> {
+    
+    let hospital = hospital_repo::update_hospital(&state.db, id, payload)
+        .await
+        .map_err(|e| {
+            // Check if error is "RowNotFound"
+            match e {
+                sqlx::Error::RowNotFound => (
+                    StatusCode::NOT_FOUND,
+                    Json(ApiResponse::error("Hospital not found")),
+                ),
+                _ => (
+                    StatusCode::INTERNAL_SERVER_ERROR,
+                    Json(ApiResponse::error(&e.to_string())),
+                )
+            }
+        })?;
+
+    Ok(Json(ApiResponse::success(hospital, Some("Hospital updated successfully".to_string()))))
+}
+
+/// Delete a hospital
+#[utoipa::path(
+    delete,
+    path = "/api/v1/hospitals/{id}",
+    tag = "hospitals",
+    params(
+        ("id" = Uuid, Path, description = "Hospital ID")
+    ),
+    responses(
+        (status = 200, description = "Hospital deleted successfully"),
+        (status = 404, description = "Hospital not found")
+    )
+)]
+pub async fn delete_hospital(
+    State(state): State<AppState>, // <--- Change here
+    Path(id): Path<Uuid>,
+) -> Result<Json<ApiResponse<()>>, (StatusCode, Json<ApiResponse<()>>)> {
+    
+    let rows_deleted = hospital_repo::delete_hospital(&state.db, id) // <--- Change here
+        .await
+        .map_err(|e| {
+            (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                Json(ApiResponse::error(&e.to_string())),
+            )
+        })?;
+
+    if rows_deleted == 0 {
+        return Err((
+            StatusCode::NOT_FOUND,
+            Json(ApiResponse::error("Hospital not found")),
+        ));
     }
 
-    let hospital = create_hospital(&state.db, payload).await?;
-
-    Ok(Json(HospitalSingleResponse(ApiResponse::success(
-        SingleHospitalResponse { hospital },
-        None,
-    ))))
+    Ok(Json(ApiResponse::success((), Some("Hospital deleted successfully".to_string()))))
 }

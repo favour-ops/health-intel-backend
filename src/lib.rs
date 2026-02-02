@@ -14,9 +14,7 @@ use config::Settings;
 use db::create_pool;
 use routes::{create_router, AppState};
 
-// New helper function to build the app
 pub async fn setup_app() -> (Router, PgPool) {
-    // FIX: Load .env file (silently fails if file is missing, which is fine for prod)
     dotenvy::dotenv().ok();
 
     // 1. Load Config
@@ -24,9 +22,14 @@ pub async fn setup_app() -> (Router, PgPool) {
     
     // 2. Connect to DB
     let db_pool = create_pool(&settings.database_url).await;
-    let app_state = AppState { db: db_pool.clone() };
+    
+    // 3. Create AppState (With JWT Secret!)
+    let app_state = AppState { 
+        db: db_pool.clone(),
+        jwt_secret: settings.jwt_secret.clone(), // <--- Added this line
+    };
 
-    // 3. Build Router
+    // 4. Build Router
     let app = create_router()
         .layer(TraceLayer::new_for_http())
         .with_state(app_state);

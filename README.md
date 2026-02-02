@@ -10,7 +10,17 @@ The long-term vision is to build a **modular, API-first healthcare intelligence 
 - Support future analytics, AI-driven insights, and interoperability
 - Scale cleanly as features and teams grow
 
-This repository contains the **Rust-based backend API** with a PostgreSQL database. The frontend is planned for a future phase.
+This repository contains the **Rust-based backend API** with a PostgreSQL database.
+
+---
+
+## 🔐 Default Admin Credentials
+
+To access the dashboard and test protected endpoints, use the following credentials:
+
+| Role | Email | Password |
+|------|-------|----------|
+| **Super Admin** | `admin@health.gov.ng` | `password123` |
 
 ---
 
@@ -22,8 +32,9 @@ This repository contains the **Rust-based backend API** with a PostgreSQL databa
 - Centralize hospital data with a robust API
 - Provide consistent, standardized API response structure
 - Implement comprehensive error handling and structured logging
-- Build a foundation that scales as the system grows
-- Create modular code architecture for clean separation of concerns
+- **Secure Authentication System (JWT + Bcrypt)**
+- **Real-time Occupancy Tracking**
+- **Interactive Dashboard with Map**
 
 ### Long-Term Goals
 
@@ -47,7 +58,7 @@ This repository contains the **Rust-based backend API** with a PostgreSQL databa
 | **Web Framework** | Axum 0.7 | Type-safe, modular routing |
 | **Async Runtime** | Tokio 1.36 | Full features (multi-threaded, macros, networking) |
 | **Database** | PostgreSQL 13+ | SQL with sqlx compile-time verification |
-| **Database ORM** | SQLx 0.7 | Compile-time checked SQL queries |
+| **Authentication** | JWT + Bcrypt | Stateless, secure token-based auth |
 | **Serialization** | Serde 1.0 | JSON (de)serialization |
 | **Validation** | Validator 0.19 | Request payload validation |
 | **API Documentation** | Utoipa + Swagger UI | OpenAPI 3.0 auto-generation |
@@ -78,62 +89,8 @@ This repository contains the **Rust-based backend API** with a PostgreSQL databa
 
 ## 📂 Project Structure
 
-```
-health-intel-backend/
-├── src/
-│   ├── main.rs                    # Application entry point
-│   ├── lib.rs                     # Library exports, setup_app helper
-│   │
-│   ├── routes/                    # HTTP endpoint handlers & routing
-│   │   ├── mod.rs                 # Module definitions
-│   │   ├── router.rs              # Central router setup with Swagger
-│   │   ├── state.rs               # Shared application state
-│   │   ├── health.rs              # GET /health endpoint
-│   │   └── hospitals.rs           # Hospital CRUD endpoints
-│   │
-│   ├── models/                    # Data structures & API schemas
-│   │   ├── mod.rs                 # Module definitions
-│   │   ├── hospital.rs            # Hospital entity & CreateHospitalRequest
-│   │   ├── api_response.rs        # Generic ApiResponse wrapper (all responses)
-│   │   ├── hospital_response.rs   # HospitalsResponse schema
-│   │   └── single_hospital_response.rs  # SingleHospitalResponse schema
-│   │
-│   ├── db/                        # Database layer
-│   │   ├── mod.rs                 # Module definitions
-│   │   ├── pool.rs                # PostgreSQL connection pool setup
-│   │   └── hospital_repo.rs       # Hospital data access (queries)
-│   │
-│   ├── config/                    # Configuration management
-│   │   ├── mod.rs                 # Module definitions
-│   │   └── settings.rs            # Settings struct (env vars)
-│   │
-│   ├── errors/                    # Centralized error handling
-│   │   ├── mod.rs                 # Module definitions
-│   │   ├── app.rs                 # AppError enum & HTTP mapping
-│   │   └── db.rs                  # Database error conversion to AppError
-│   │
-│   ├── middleware/                # Cross-cutting concerns
-│   │   └── mod.rs                 # Placeholder for future middleware
-│   │
-│   ├── ws/                        # WebSocket (future implementation)
-│   │   └── mod.rs                 # Placeholder
-│   │
-│   └── docs.rs                    # OpenAPI documentation & Swagger config
-│
-├── migrations/                    # Database migrations (SQL)
-│   ├── 002_create_hospitals.sql   # Hospital table schema
-│   ├── 003_seed_hospitals.sql     # Sample hospital data
-│   └── 004_unique_hospital_name.sql  # Unique constraint on name
-│
-├── tests/                         # Integration tests
-│   ├── hospitals.rs               # Hospital endpoint tests
-│   └── create_hospital.rs         # Hospital creation tests
-│
-├── Cargo.toml                     # Rust dependencies & metadata
-├── Cargo.lock                     # Locked dependency versions
-├── .env                           # Environment variables (development)
-└── .gitignore                     # Git ignore rules
-```
+health-intel-backend/ ├── src/ │ ├── main.rs # Application entry point │ ├── lib.rs # Library exports, setup_app helper │ │ │ ├── routes/ # HTTP endpoint handlers & routing │ │ ├── mod.rs # Module definitions │ │ ├── router.rs # Central router setup with Swagger │ │ ├── state.rs # Shared application state │ │ ├── health.rs # GET /health endpoint │ │ ├── auth.rs # Login & Auth handlers │ │ └── hospitals.rs # Hospital CRUD endpoints │ │ │ ├── models/ # Data structures & API schemas │ │ ├── mod.rs # Module definitions │ │ ├── user.rs # User entity & LoginRequest │ │ ├── hospital.rs # Hospital entity & CreateHospitalRequest │ │ ├── api_response.rs # Generic ApiResponse wrapper (all responses) │ │ ├── hospital_response.rs # HospitalsResponse schema │ │ └── single_hospital_response.rs # SingleHospitalResponse schema │ │ │ ├── db/ # Database layer │ │ ├── mod.rs # Module definitions │ │ ├── pool.rs # PostgreSQL connection pool setup │ │ ├── user_repo.rs # User data access │ │ └── hospital_repo.rs # Hospital data access (queries) │ │ │ ├── config/ # Configuration management │ │ ├── mod.rs # Module definitions │ │ └── settings.rs # Settings struct (env vars) │ │ │ ├── errors/ # Centralized error handling │ │ ├── mod.rs # Module definitions │ │ ├── app.rs # AppError enum & HTTP mapping │ │ └── db.rs # Database error conversion to AppError │ │ │ ├── middleware/ # Cross-cutting concerns │ │ └── mod.rs # Placeholder for future middleware │ │ │ ├── ws/ # WebSocket (future implementation) │ │ └── mod.rs # Placeholder │ │ │ └── docs.rs # OpenAPI documentation & Swagger config │ ├── https://www.google.com/search?q=migrations/ # Database migrations (SQL) │ ├── 002_create_hospitals.sql # Hospital table schema │ ├── 003_seed_hospitals.sql # Sample hospital data │ └── 004_unique_hospital_name.sql # Unique constraint on name │ ├── https://www.google.com/search?q=tests/ # Integration tests │ ├── hospitals.rs # Hospital endpoint tests │ └── create_hospital.rs # Hospital creation tests │ ├── Cargo.toml # Rust dependencies & metadata ├── Cargo.lock # Locked dependency versions ├── https://www.google.com/search?q=.env # Environment variables (development) └── .gitignore # Git ignore rules
+
 
 ---
 
@@ -154,11 +111,9 @@ All API responses follow a **unified structure** for consistency and predictabil
     "count": null
   }
 }
-```
+Error Response
+JSON
 
-### Error Response
-
-```json
 {
   "status": "error",
   "data": null,
@@ -167,13 +122,11 @@ All API responses follow a **unified structure** for consistency and predictabil
     "count": null
   }
 }
-```
+Response Structure Definition
+File: src/models/api_response.rs
 
-### Response Structure Definition
+Rust
 
-**File:** [src/models/api_response.rs](src/models/api_response.rs)
-
-```rust
 pub struct ApiResponse<T> {
     pub status: String,
     pub data: Option<T>,
@@ -184,58 +137,77 @@ pub struct Meta {
     pub count: Option<u32>,
     pub message: Option<String>,
 }
-```
+Why This Matters
+✅ Predictable frontend integration - exact same shape everywhere
 
-### Why This Matters
+✅ Easier error handling in clients
 
-✅ Predictable frontend integration - exact same shape everywhere  
-✅ Easier error handling in clients  
-✅ Cleaner API documentation  
-✅ Simplified testing and debugging  
+✅ Cleaner API documentation
 
----
+✅ Simplified testing and debugging
 
-## 🔌 API Endpoints
-
-### Base URL
-
-```
+🔌 API Endpoints
+Base URL
 http://localhost:3000
-```
+Interactive Docs
+Swagger UI: http://localhost:3000/swagger-ui
 
-### Interactive Docs
+OpenAPI Spec: http://localhost:3000/api-docs/openapi.json
 
-- **Swagger UI:** `http://localhost:3000/swagger-ui`
-- **OpenAPI Spec:** `http://localhost:3000/api-docs/openapi.json`
-
-### Health Check
-
-**GET** `/api/v1/health`
+Health Check
+GET /api/v1/health
 
 Check system and database connection status.
 
-**Response (200 OK):**
-```json
+Response (200 OK):
+
+JSON
+
 {
   "status": "ok",
   "service": "health-intel-backend",
   "database": "connected",
   "timestamp": 1674567890
 }
-```
+🔐 Authentication Endpoints
+Login
+POST /api/v1/login
 
----
+Authenticate a user and retrieve a JWT token.
 
-### 🏥 Hospitals Endpoints
+Request Body:
 
-#### List All Hospitals
+JSON
 
-**GET** `/api/v1/hospitals`
+{
+  "email": "admin@health.gov.ng",
+  "password": "password123"
+}
+Response (200 OK):
+
+JSON
+
+{
+  "status": "success",
+  "data": {
+    "token": "eyJhGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+    "user": {
+      "id": "...",
+      "email": "admin@health.gov.ng"
+    }
+  },
+  "meta": { ... }
+}
+🏥 Hospitals Endpoints
+List All Hospitals
+GET /api/v1/hospitals
 
 Retrieve all hospitals in the system.
 
-**Response (200 OK):**
-```json
+Response (200 OK):
+
+JSON
+
 {
   "status": "success",
   "data": {
@@ -256,21 +228,19 @@ Retrieve all hospitals in the system.
     "count": null
   }
 }
-```
-
----
-
-#### Get Hospital by ID
-
-**GET** `/api/v1/hospitals/{id}`
+Get Hospital by ID
+GET /api/v1/hospitals/{id}
 
 Retrieve a specific hospital by UUID.
 
-**Path Parameters:**
-- `id` (UUID) - Hospital UUID
+Path Parameters:
 
-**Response (200 OK):**
-```json
+id (UUID) - Hospital UUID
+
+Response (200 OK):
+
+JSON
+
 {
   "status": "success",
   "data": {
@@ -289,10 +259,10 @@ Retrieve a specific hospital by UUID.
     "count": null
   }
 }
-```
+Response (404 Not Found):
 
-**Response (404 Not Found):**
-```json
+JSON
+
 {
   "status": "error",
   "data": null,
@@ -301,34 +271,35 @@ Retrieve a specific hospital by UUID.
     "count": null
   }
 }
-```
-
----
-
-#### Create Hospital
-
-**POST** `/api/v1/hospitals`
+Create Hospital
+POST /api/v1/hospitals
 
 Create a new hospital record.
 
-**Request Body:**
-```json
+Request Body:
+
+JSON
+
 {
   "name": "Central Hospital",
   "hospital_type": "PUBLIC",
   "state": "Lagos",
   "city": "Lagos"
 }
-```
+Validation Rules:
 
-**Validation Rules:**
-- `name`: minimum 3 characters (required)
-- `hospital_type`: must be "PUBLIC" or "PRIVATE" (required)
-- `state`: minimum 1 character (required)
-- `city`: minimum 1 character (required)
+name: minimum 3 characters (required)
 
-**Response (200 OK):**
-```json
+hospital_type: must be "PUBLIC" or "PRIVATE" (required)
+
+state: minimum 1 character (required)
+
+city: minimum 1 character (required)
+
+Response (200 OK):
+
+JSON
+
 {
   "status": "success",
   "data": {
@@ -347,10 +318,10 @@ Create a new hospital record.
     "count": null
   }
 }
-```
+Response (400 Bad Request):
 
-**Response (400 Bad Request):**
-```json
+JSON
+
 {
   "status": "error",
   "data": null,
@@ -359,10 +330,10 @@ Create a new hospital record.
     "count": null
   }
 }
-```
+Response (409 Conflict):
 
-**Response (409 Conflict):**
-```json
+JSON
+
 {
   "status": "error",
   "data": null,
@@ -371,19 +342,14 @@ Create a new hospital record.
     "count": null
   }
 }
-```
-
----
-
-## ❌ Error Handling Strategy
-
-### Centralized Error System
-
+❌ Error Handling Strategy
+Centralized Error System
 All errors are handled through a custom error type:
 
-**File:** [src/errors/app.rs](src/errors/app.rs)
+File: src/errors/app.rs
 
-```rust
+Rust
+
 pub enum AppError {
     NotFound,                    // 404
     Database(String),            // 500
@@ -393,123 +359,122 @@ pub enum AppError {
     Forbidden,                   // 403
     Internal,                    // 500
 }
-```
+Error Flow
+Database errors (sqlx::Error) are caught in src/errors/db.rs
 
-### Error Flow
+Specific PostgreSQL errors are mapped:
 
-1. **Database errors** (sqlx::Error) are caught in [src/errors/db.rs](src/errors/db.rs)
-2. **Specific PostgreSQL errors** are mapped:
-   - `23505` (Unique Violation) → `Conflict`
-   - `23514` (Check Violation) → `BadRequest`
-3. **All errors** implement `IntoResponse` for automatic HTTP responses
-4. **Logging** is emitted with error context for observability
+23505 (Unique Violation) → Conflict
 
-### Why Errors Live in `src/errors/`
+23514 (Check Violation) → BadRequest
 
-✅ Prevents error logic from scattered throughout codebase  
-✅ Single place to adjust error messages or status codes  
-✅ Easier to add logging, metrics, or error tracking  
-✅ Scales as the app grows  
+All errors implement IntoResponse for automatic HTTP responses
 
----
+Logging is emitted with error context for observability
 
-## 🪵 Logging & Observability
+Why Errors Live in src/errors/
+✅ Prevents error logic from scattered throughout codebase
 
-### Logging Framework
+✅ Single place to adjust error messages or status codes
 
-**Crate:** `tracing` 0.1 + `tracing-subscriber`
+✅ Easier to add logging, metrics, or error tracking
 
-### Log Levels
+✅ Scales as the app grows
 
-```rust
+🪵 Logging & Observability
+Logging Framework
+Crate: tracing 0.1 + tracing-subscriber
+
+Log Levels
+Rust
+
 RUST_LOG=debug           # Verbose debugging
 RUST_LOG=info            # General information (default)
 RUST_LOG=warn            # Warnings and errors only
 RUST_LOG=error           # Errors only
-```
-
-### Default Filter
-
-```
+Default Filter
 health_intel_backend=debug,tower_http=debug
-```
-
 This logs:
-- Application events (setup, request lifecycle)
-- HTTP request/response details (via tower-http)
-- Error context (in `AppError::IntoResponse`)
 
-### Structured Logging in AppError
+Application events (setup, request lifecycle)
 
+HTTP request/response details (via tower-http)
+
+Error context (in AppError::IntoResponse)
+
+Structured Logging in AppError
 When an error occurs, it's logged with context:
 
-```rust
+Rust
+
 error!(
     error_code = "DATABASE_ERROR",
     http_status = 500,
     message = "...",
     "request failed"
 );
-```
-
-### Future Observability
-
+Future Observability
 The logging infrastructure is ready for:
-- 📊 Centralized log aggregation (ELK, Datadog)
-- 📈 Metrics collection
-- 🔍 Distributed tracing
-- 💾 Long-term log retention
 
----
+📊 Centralized log aggregation (ELK, Datadog)
 
-## 🧪 Testing
+📈 Metrics collection
 
-### Test Files
+🔍 Distributed tracing
 
-**Location:** [tests/](tests/)
+💾 Long-term log retention
 
-- [tests/hospitals.rs](tests/hospitals.rs) - Hospital endpoint tests
-- [tests/create_hospital.rs](tests/create_hospital.rs) - Hospital creation tests
+🧪 Testing
+Test Files
+Location: tests/
 
-### Running Tests
+tests/hospitals.rs - Hospital endpoint tests
 
-```bash
+tests/create_hospital.rs - Hospital creation tests
+
+Running Tests
+Bash
+
 cargo test
-```
+Test Coverage
+✅ List all hospitals
 
-### Test Coverage
+✅ Get hospital by ID (existing & non-existing)
 
-- ✅ List all hospitals
-- ✅ Get hospital by ID (existing & non-existing)
-- ✅ Create hospital (valid data)
-- ✅ Validation error handling
-- ✅ Duplicate hospital handling (409 Conflict)
+✅ Create hospital (valid data)
 
----
+✅ Validation error handling
 
-## 🗄️ Database
+✅ Duplicate hospital handling (409 Conflict)
 
-### Database Choice
+🗄️ Database
+Database Choice
+PostgreSQL 13+ for:
 
-**PostgreSQL 13+** for:
-- ACID transactions
-- JSON support (future)
-- UUID native type
-- Rich ecosystem
-- Industry-standard for healthcare systems
+ACID transactions
 
-### Migrations
+JSON support (future)
 
-**Location:** [migrations/](migrations/)
+UUID native type
 
-**Files:**
-1. `002_create_hospitals.sql` - Hospital table schema
-2. `003_seed_hospitals.sql` - Sample data
-3. `004_unique_hospital_name.sql` - Unique constraint
+Rich ecosystem
 
-### Hospital Table Schema
+Industry-standard for healthcare systems
 
-```sql
+Migrations
+Location: migrations/
+
+Files:
+
+002_create_hospitals.sql - Hospital table schema
+
+003_seed_hospitals.sql - Sample data
+
+004_unique_hospital_name.sql - Unique constraint
+
+Hospital Table Schema
+SQL
+
 CREATE TABLE hospitals (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     name TEXT NOT NULL,
@@ -521,15 +486,13 @@ CREATE TABLE hospitals (
 );
 
 CREATE UNIQUE INDEX idx_hospitals_name ON hospitals(name);
-```
-
-### SQLx Compile-Time Verification
-
-**File:** [src/db/hospital_repo.rs](src/db/hospital_repo.rs)
+SQLx Compile-Time Verification
+File: src/db/hospital_repo.rs
 
 Queries are verified at compile-time:
 
-```rust
+Rust
+
 let hospitals = sqlx::query_as!(
     Hospital,
     r#"
@@ -540,124 +503,96 @@ let hospitals = sqlx::query_as!(
 )
 .fetch_all(pool)
 .await?;
-```
+If the query is invalid or columns don't match, compilation fails before deployment. ✅
 
-If the query is invalid or columns don't match, **compilation fails** before deployment. ✅
+⚙️ Configuration & Setup
+Environment Variables
+File: .env
 
----
+Code snippet
 
-## ⚙️ Configuration & Setup
-
-### Environment Variables
-
-**File:** [.env](.env)
-
-```env
 DATABASE_URL=postgresql://health_admin:strongpassword@localhost:5432/health_intel_mvp
 JWT_SECRET=dev_secret_change_later
 # Optional (defaults provided):
 # HOST=127.0.0.1
 # PORT=3000
-```
+Settings Struct
+File: src/config/settings.rs
 
-### Settings Struct
+Rust
 
-**File:** [src/config/settings.rs](src/config/settings.rs)
-
-```rust
 pub struct Settings {
     pub database_url: String,
     pub jwt_secret: String,
     pub host: String,           // default: 127.0.0.1
     pub port: u16,              // default: 3000
 }
-```
+Loaded via envy crate from environment.
 
-Loaded via `envy` crate from environment.
+🚀 Getting Started
+Prerequisites
+Rust 1.70+ (Install)
 
----
+Cargo (comes with Rust)
 
-## 🚀 Getting Started
+PostgreSQL 13+ (Install)
 
-### Prerequisites
+Git (for cloning)
 
-- **Rust** 1.70+ ([Install](https://rustup.rs/))
-- **Cargo** (comes with Rust)
-- **PostgreSQL** 13+ ([Install](https://www.postgresql.org/download/))
-- **Git** (for cloning)
+Step 1: Clone Repository
+Bash
 
-### Step 1: Clone Repository
-
-```bash
 git clone <repository-url>
 cd health-intel-backend
-```
+Step 2: Set Up Environment
+Copy and configure .env:
 
-### Step 2: Set Up Environment
+Bash
 
-Copy and configure `.env`:
-
-```bash
 cp .env.example .env  # (if provided, or create from template)
-```
+Update .env with your PostgreSQL connection:
 
-Update `.env` with your PostgreSQL connection:
+Code snippet
 
-```env
 DATABASE_URL=postgresql://user:password@localhost:5432/health_intel_mvp
 JWT_SECRET=your_secret_key_here
 HOST=127.0.0.1
 PORT=3000
-```
+Step 3: Install Dependencies
+Bash
 
-### Step 3: Install Dependencies
-
-```bash
 cargo build
-```
-
 This downloads and compiles all dependencies.
 
-### Step 4: Run Database Migrations
+Step 4: Run Database Migrations
+Bash
 
-```bash
 # If using sqlx-cli
 sqlx migrate run --database-url $DATABASE_URL
 
 # Or use your migration tool of choice
 # Migrations are in: migrations/
-```
+Step 5: Start Server
+Bash
 
-### Step 5: Start Server
-
-```bash
 cargo run
-```
+Output:
 
-**Output:**
-```
-🚀 Server running on http://127.0.0.1:3000
-```
+🚀 Server running on [http://127.0.0.1:3000](http://127.0.0.1:3000)
+Step 6: Test the API
+Health Check:
 
-### Step 6: Test the API
+Bash
 
-**Health Check:**
-```bash
 curl http://localhost:3000/api/v1/health
-```
+Swagger UI: Open browser: http://localhost:3000/swagger-ui
 
-**Swagger UI:**
-Open browser: `http://localhost:3000/swagger-ui`
+🧬 Data Models
+Hospital Entity
+Location: src/models/hospital.rs
 
----
+Rust
 
-## 🧬 Data Models
-
-### Hospital Entity
-
-**Location:** [src/models/hospital.rs](src/models/hospital.rs)
-
-```rust
 pub struct Hospital {
     pub id: Uuid,
     pub name: String,
@@ -674,66 +609,83 @@ pub struct CreateHospitalRequest {
     pub state: String,
     pub city: String,
 }
-```
+Future Data Models (Planned)
+Doctor - Medical professionals
 
-### Future Data Models (Planned)
+Patient - Patient demographics
 
-- **Doctor** - Medical professionals
-- **Patient** - Patient demographics
-- **Visit** - Hospital visits/admissions
-- **Staff** - Hospital employees
-- **Department** - Hospital departments
-- **Equipment** - Medical equipment inventory
+Visit - Hospital visits/admissions
 
----
+Staff - Hospital employees
 
-## ✅ Current Implementation Status
+Department - Hospital departments
 
-### Completed ✓
+Equipment - Medical equipment inventory
 
-- ✅ Axum web server setup
-- ✅ PostgreSQL integration with sqlx
-- ✅ Hospital CRUD endpoints (List, Get, Create)
-- ✅ Unified API response structure
-- ✅ Centralized error handling (AppError)
-- ✅ Input validation (validator crate)
-- ✅ Structured logging (tracing)
-- ✅ OpenAPI/Swagger documentation
-- ✅ Database connection pooling
-- ✅ Environment configuration (envy)
-- ✅ HTTP health check endpoint
-- ✅ Integration tests for hospital endpoints
+✅ Current Implementation Status
+Completed ✓
+✅ Axum web server setup
 
-### In Progress 🔨
+✅ PostgreSQL integration with sqlx
 
-- 🔨 Authentication (JWT) - prepared in dependencies
-- 🔨 More hospital operations (Update, Delete)
-- 🔨 Pagination & filtering for list endpoints
+✅ Hospital CRUD endpoints (List, Get, Create)
 
-### Planned 📋
+✅ Authentication System (Login, JWT Generation)
 
-- 📋 Doctor management endpoints
-- 📋 Patient records management
-- 📋 Staff management
-- 📋 Hospital visits/appointments
-- 📋 Role-based access control (RBAC)
-- 📋 Audit logging
-- 📋 File upload for medical records
-- 📋 Real-time notifications (WebSocket)
-- 📋 Analytics & reporting
-- 📋 Frontend (React/Next.js)
-- 📋 API rate limiting
-- 📋 Request caching
+✅ Unified API response structure
 
----
+✅ Centralized error handling (AppError)
 
-## 🧩 Code Organization Principles
+✅ Input validation (validator crate)
 
-### 1. **Thin Routes**
+✅ Structured logging (tracing)
 
+✅ OpenAPI/Swagger documentation
+
+✅ Database connection pooling
+
+✅ Environment configuration (envy)
+
+✅ HTTP health check endpoint
+
+✅ Integration tests for hospital endpoints
+
+In Progress 🔨
+🔨 Role-based access control (RBAC) middleware
+
+🔨 More hospital operations (Update, Delete)
+
+🔨 Pagination & filtering for list endpoints
+
+Planned 📋
+📋 Doctor management endpoints
+
+📋 Patient records management
+
+📋 Staff management
+
+📋 Hospital visits/appointments
+
+📋 Audit logging
+
+📋 File upload for medical records
+
+📋 Real-time notifications (WebSocket)
+
+📋 Analytics & reporting
+
+📋 Frontend (React/Next.js)
+
+📋 API rate limiting
+
+📋 Request caching
+
+🧩 Code Organization Principles
+1. Thin Routes
 Routes handle HTTP concerns only:
 
-```rust
+Rust
+
 // ✅ Good
 pub async fn get_hospitals(
     State(state): State<AppState>,
@@ -741,98 +693,71 @@ pub async fn get_hospitals(
     let hospitals = fetch_all_hospitals(&state.db).await?;
     Ok(Json(ApiResponse::success(HospitalsResponse { hospitals }, None)))
 }
-```
-
-### 2. **Business Logic in Repository/Services**
-
+2. Business Logic in Repository/Services
 Data access and business rules in separate layer:
 
-```rust
+Rust
+
 // In db/hospital_repo.rs
 pub async fn fetch_all_hospitals(pool: &PgPool) -> Result<Vec<Hospital>, sqlx::Error> {
     sqlx::query_as!(Hospital, "SELECT * FROM hospitals ORDER BY created_at DESC")
         .fetch_all(pool)
         .await
 }
-```
-
-### 3. **Always Use ApiResponse**
-
+3. Always Use ApiResponse
 Never return raw data or errors:
 
-```rust
+Rust
+
 // ✅ Good
 Ok(Json(ApiResponse::success(data, None)))
 
 // ❌ Bad
 Ok(Json(data))
-```
-
-### 4. **Explicit Error Handling**
-
+4. Explicit Error Handling
 No panics or unwraps in production code:
 
-```rust
+Rust
+
 // ✅ Good
 let hospital = hospital.ok_or(AppError::NotFound)?;
 
 // ❌ Bad
 let hospital = hospital.unwrap();
-```
+🚢 Deployment
+Building for Production
+Bash
 
----
-
-## 🚢 Deployment
-
-### Building for Production
-
-```bash
 cargo build --release
-```
+Binary location: target/release/health-intel-backend
 
-Binary location: `target/release/health-intel-backend`
+Environment for Production
+Code snippet
 
-### Environment for Production
-
-```env
 DATABASE_URL=postgresql://prod_user:strong_password@prod-db.example.com:5432/health_intel
 JWT_SECRET=random_secret_key_min_32_chars
 HOST=0.0.0.0
 PORT=3000
 RUST_LOG=info
-```
-
-### Containerization (Planned)
-
+Containerization (Planned)
 A Dockerfile will be provided for Docker deployment.
 
----
-
-## 📡 API Documentation
-
-### Swagger UI
-
+📡 API Documentation
+Swagger UI
 Interactive API documentation with "Try it Out" functionality:
 
-```
 http://localhost:3000/swagger-ui
-```
-
-### OpenAPI Spec
-
+OpenAPI Spec
 Raw OpenAPI 3.0 specification:
 
-```
 http://localhost:3000/api-docs/openapi.json
-```
+API Doc Generation
+File: src/docs.rs
 
-### API Doc Generation
+Uses utoipa to auto-generate docs from code:
 
-**File:** [src/docs.rs](src/docs.rs)
+Rust
 
-Uses `utoipa` to auto-generate docs from code:
-
-```rust
 #[derive(OpenApi)]
 #[openapi(
     paths(hospitals::get_hospitals, hospitals::create_hospital_handler),
@@ -840,64 +765,67 @@ Uses `utoipa` to auto-generate docs from code:
     tags((name = "Hospitals", description = "Manage hospital records"))
 )]
 pub struct ApiDoc;
-```
-
 Docs stay in sync with code automatically.
 
----
+🔒 Security (Planned)
+Current State
+✅ Input validation
 
-## 🔒 Security (Planned)
+✅ SQL injection prevention (via sqlx)
 
-### Current State
+✅ Type-safe code (Rust)
 
-- ✅ Input validation
-- ✅ SQL injection prevention (via sqlx)
-- ✅ Type-safe code (Rust)
+✅ JWT Authentication
 
-### Roadmap
+Roadmap
+🔲 Role-based access control (RBAC)
 
-- 🔲 JWT authentication middleware
-- 🔲 Role-based access control (RBAC)
-- 🔲 Rate limiting
-- 🔲 CORS configuration
-- 🔲 HTTPS/TLS
-- 🔲 Request signing
-- 🔲 Audit trail for sensitive operations
-- 🔲 Data encryption at rest
+🔲 Rate limiting
 
----
+🔲 CORS configuration
 
-## 📊 Performance Characteristics
+🔲 HTTPS/TLS
 
-### Current Optimizations
+🔲 Request signing
 
-- ✅ **Connection Pooling** - Max 10 concurrent DB connections
-- ✅ **Async/Await** - Non-blocking I/O with Tokio
-- ✅ **Compile-Time Verification** - SQLx catches bugs early
-- ✅ **Type-Safe Serialization** - Serde with derive macros
-- ✅ **Minimal Allocations** - Rust's ownership model
+🔲 Audit trail for sensitive operations
 
-### Future Optimizations
+🔲 Data encryption at rest
 
-- 📋 Response caching layer
-- 📋 Database query caching
-- 📋 Batch operation endpoints
-- 📋 Pagination for large result sets
-- 📋 Indexing strategy on frequently queried fields
+📊 Performance Characteristics
+Current Optimizations
+✅ Connection Pooling - Max 10 concurrent DB connections
 
----
+✅ Async/Await - Non-blocking I/O with Tokio
 
-## 🤝 Contributing
+✅ Compile-Time Verification - SQLx catches bugs early
 
-### Code Style
+✅ Type-Safe Serialization - Serde with derive macros
 
-- Follow Rust naming conventions (snake_case for functions/variables)
-- Use `cargo fmt` for formatting
-- Use `cargo clippy` for linting
+✅ Minimal Allocations - Rust's ownership model
 
-### Before Submitting Changes
+Future Optimizations
+📋 Response caching layer
 
-```bash
+📋 Database query caching
+
+📋 Batch operation endpoints
+
+📋 Pagination for large result sets
+
+📋 Indexing strategy on frequently queried fields
+
+🤝 Contributing
+Code Style
+Follow Rust naming conventions (snake_case for functions/variables)
+
+Use cargo fmt for formatting
+
+Use cargo clippy for linting
+
+Before Submitting Changes
+Bash
+
 # Format code
 cargo fmt
 
@@ -909,108 +837,113 @@ cargo test
 
 # Check compilation
 cargo check
-```
+Adding New Endpoints
+Define request/response models in src/models/
 
-### Adding New Endpoints
+Add handler in src/routes/
 
-1. Define request/response models in `src/models/`
-2. Add handler in `src/routes/`
-3. Add route to `src/routes/router.rs`
-4. Add database access in `src/db/`
-5. Add error handling if needed in `src/errors/`
-6. Add tests in `tests/`
-7. Update OpenAPI docs in `src/docs.rs`
+Add route to src/routes/router.rs
 
----
+Add database access in src/db/
 
-## 📚 Project Roadmap
+Add error handling if needed in src/errors/
 
-### Q1 2025 (Current)
+Add tests in tests/
 
-- ✅ Core hospital management
-- 🔲 Hospital update/delete endpoints
-- 🔲 Pagination for hospital list
+Update OpenAPI docs in src/docs.rs
 
-### Q2 2025
+📚 Project Roadmap
+Q1 2025 (Current)
+✅ Core hospital management
 
-- 📋 Patient records management
-- 📋 Doctor management
-- 📋 JWT authentication
-- 📋 Role-based access control
+✅ Authentication (JWT)
 
-### Q3 2025
+🔲 Hospital update/delete endpoints
 
-- 📋 Visit/appointment scheduling
-- 📋 Audit logging
-- 📋 Advanced search & filtering
+🔲 Pagination for hospital list
 
-### Q4 2025 & Beyond
+Q2 2025
+📋 Patient records management
 
-- 📋 AI-driven insights
-- 📋 Analytics dashboard
-- 📋 Frontend application
-- 📋 Third-party integrations
+📋 Doctor management
 
----
+📋 Role-based access control (RBAC)
 
-## 📞 Support & Resources
+Q3 2025
+📋 Visit/appointment scheduling
 
-### Documentation
+📋 Audit logging
 
-- [Axum Guide](https://github.com/tokio-rs/axum)
-- [SQLx Documentation](https://github.com/launchbadge/sqlx)
-- [Rust Book](https://doc.rust-lang.org/book/)
-- [Tokio Tutorial](https://tokio.rs/tokio/tutorial)
+📋 Advanced search & filtering
 
-### Community
+Q4 2025 & Beyond
+📋 AI-driven insights
 
-- Rust Discord: discord.gg/rust-lang
-- Stack Overflow: Tag `rust`
+📋 Analytics dashboard
 
----
+📋 Frontend application
 
-## 📄 License
+📋 Third-party integrations
 
+📞 Support & Resources
+Documentation
+Axum Guide
+
+SQLx Documentation
+
+Rust Book
+
+Tokio Tutorial
+
+Community
+Rust Discord: discord.gg/rust-lang
+
+Stack Overflow: Tag rust
+
+📄 License
 This project is licensed under the MIT License - see LICENSE file for details.
 
----
-
-## 🙏 Acknowledgments
-
+🙏 Acknowledgments
 Built with:
-- [Rust](https://www.rust-lang.org/) - Language
-- [Axum](https://github.com/tokio-rs/axum) - Web framework
-- [Tokio](https://tokio.rs/) - Async runtime
-- [PostgreSQL](https://www.postgresql.org/) - Database
-- [SQLx](https://github.com/launchbadge/sqlx) - SQL toolkit
 
----
+Rust - Language
 
-## 📚 Documentation Hub
+Axum - Web framework
 
+Tokio - Async runtime
+
+PostgreSQL - Database
+
+SQLx - SQL toolkit
+
+📚 Documentation Hub
 This project includes comprehensive documentation:
 
-- **[Quick Start](./QUICK_START.md)** - 10-minute orientation
-- **[Vision & Strategy](./docs/01-vision-and-strategy/)** - Why this project matters
-- **[MVP Definition](./docs/02-mvp-definition/)** - What we're building
-- **[Architecture](./docs/03-architecture/)** - How it works
-- **[Development Logs](./docs/04-development-logs/)** - Progress & journey
-- **[Challenges & Solutions](./docs/05-challenges-and-solutions/)** - Bugs & learnings
-- **[Data Models](./docs/06-data-models/)** - Database design
+Quick Start - 10-minute orientation
 
-**New to the project?** Start with [QUICK_START.md](./QUICK_START.md)
+Vision & Strategy - Why this project matters
 
----
+MVP Definition - What we're building
 
-**Last Updated:** January 2025  
-**Version:** 0.1.0  
-**Status:** 🚀 Active Development
+Architecture - How it works
 
----
+Development Logs - Progress & journey
 
-## Quick Commands Reference
+Challenges & Solutions - Bugs & learnings
 
-```bash
+Data Models - Database design
+
+New to the project? Start with QUICK_START.md
+
+Last Updated: January 2025
+
+Version: 0.2.0 (Auth Enabled)
+
+Status: 🚀 Active Development
+
+Quick Commands Reference
+Bash
+
 # Development
 cargo run                          # Start server
 cargo build                        # Build project
@@ -1032,4 +965,3 @@ cargo tree                         # Check dependencies
 # Debugging
 RUST_LOG=debug cargo run           # Run with debug logging
 cargo expand                       # View macro expansions
-```

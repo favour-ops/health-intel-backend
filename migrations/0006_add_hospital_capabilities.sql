@@ -1,0 +1,3 @@
+ALTER TABLE hospitals
+ADD COLUMN total_beds INT DEFAULT 0,
+ADD COLUMN has_emergency BOOLEAN DEFAULT FALSE;
